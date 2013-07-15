@@ -4,9 +4,27 @@
  */
 var cheerio = require('cheerio')
   , request = require('request')
-  ,	cached = {};
+  , fs = require('fs')
+  , cached = {};
 
-var organisations = [{name:'test1', scrapes:[{name:'test',content:'var s = "test";'}]}, {name:'test2'}];
+var organisations = [];
+var loadOrganisations = function() {
+	fs.readFile('private/organisations.json', function(error, data){
+		if (!error) {
+			organisations = JSON.parse(data);
+		}
+	});
+}
+
+loadOrganisations(); 
+
+var saveOrganisations = function () {
+	fs.writeFile('private/organisations.json', JSON.stringify(organisations),  function(error){
+		if (!error){
+			console.log('Successfully saved.');
+		}
+	});
+}
 
 var updateContent = function() {
     request('http://www.hornsby.nsw.gov.au/council/about-council/contact-us', function(error, resCode, body){
@@ -38,8 +56,9 @@ updateContent();
 
 setInterval(updateContent, 60*1000*5);
 
-exports.index = function(req, res){
-  res.render('index', { title: 'Express', organisations:organisations});
+exports.admin = function(req, res){
+	console.log(req.params);
+  res.render('index', {organisations:organisations});
 };
 
 exports.organisation = function(req, res){
@@ -58,6 +77,41 @@ exports.organisation = function(req, res){
 
   res.render('org', {org:organisation});
 };
+
+exports.addOrganisation = function (req, res) {
+	var org = req.body.organisation;
+	if (organisations.map(function(item){return item.name;}).indexOf(org) === -1) {
+		organisations.push({name:org, scrapes:[]});
+		res.redirect('/admin?add=success');
+	}
+	else
+	{
+		res.redirect('/admin?add=fail');
+	}
+}
+
+exports.addScrape = function (req, res) {
+	var org = req.params.organisation;
+	var scrape = req.body;
+	var index;
+	organisations.forEach(function(item){
+		if (item.name == org) {
+			index = organisations.indexOf(item);
+		}
+	});
+	if (index !== undefined) {
+		organisations[index].scrapes.push(scrape);
+		saveOrganisations();
+		res.redirect('/admin/' + org +'/?add=success');
+		return;
+	}
+	else
+	{
+		res.redirect('/admin/' + org +'/?add=fail');
+		return;
+	}
+
+}
 
 exports.edit = function(req, res) {
 	var organisationName = req.params.organisation,
@@ -91,8 +145,41 @@ exports.edit = function(req, res) {
 }
 
 exports.save = function(req, res) {
-	var post = req.body;
+	var post = req.post,
+		org = req.params.organisation,
+		key = req.params.key,
+		oIndex,
+		sIndex;
 
+	for (var x in organisations) {
+		if (organisations[x]['name'] == org) {
+			oIndex = x;
+		}
+	}
+	
+	if (oIndex == undefined) {
+		res.send({status:'fail'});
+		return;
+	}
+	organisation = organisations[x];
+	
+	for (var y in organisation.scrapes) {
+		if (organisation.scrapes[y]['name'] == key) {
+			sIndex = y;
+		}
+
+	}
+	
+	if (sIndex == undefined) {
+		res.send({status:'fail'});
+		return;
+	}
+
+
+	var scrape = organisations[oIndex].scrapes[sIndex];
+	scrape.content = req.body.content;
+	saveOrganisations();
+	res.send({status:'ok'});
 }
 
 exports.serve = function(req, res){  
@@ -103,4 +190,33 @@ exports.serve = function(req, res){
     {
       res.send({error:1, message:'No data in cache.'});
     }
+}
+
+exports.test = function (req, res) {
+	try {
+	var url = req.body.url,
+		js = req.body.js;
+		
+	request(url, function(error, resCode, body){
+	   if (!error) {
+	    $ = cheerio.load(body);
+	   	try{ result = new Function(js)(); }
+	   	catch(e) {
+	   		res.send({error:1, message:e});
+	   		return;
+	   	}
+	   	console.log(result);
+	    res.send(result);
+	  }
+	  else
+	  {
+	  	res.send({error:1, message:"Couldn't load provided url"});
+	  	return;
+	  }
+  	});
+
+  	}
+  	catch (e) {
+  		res.send(e);
+  	}
 }

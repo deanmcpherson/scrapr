@@ -2,3 +2,12 @@ extends layout
 
 block content
   h1= org.name
+  if org.scrapes.length === 0
+    p No Scrapes have been made for this organisation.
+  else
+    for scrape in org.scrapes
+      a.nav(href='/admin/' + org.name +'/' +scrape.name)= scrape.name
+  form(method="post", action='/add/scrape/to/' + org.name)
+    input(type="textbox", name="name", placeholder="Scrape label")
+    input(type="textbox", name="url", placeholder="URL")
+    button(type="submit") Submit

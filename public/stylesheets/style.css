@@ -44,14 +44,63 @@ a {
 	color: #FFF;
 	text-shadow: 1px 1px #473F3F;
 	box-sizing:border-box;
-	border-right: 2px solid #000;
+	border-right: 1px solid #000;
 	font-weight:600;
+	cursor: pointer;
+	border-width: 0;
+	border-style: solid;
+	transition: background .2s;
+	border-top-width: 2px;
+	border-right-width: 1px;
+	border-left-width:1px;
+}
+
+.bottomBar > *:active {
+	color:#ddd;
 }
 
 .save {
 	background-color: #458F00;
+	border-color:#4DB12E;
+}
+.save:hover {
+	background-color: #5BB902;
+}
+
+.save:active {
+	background-color: #2F6100;
 }
 
 .revert {
 	background-color: #881010;
+	border-color:#CC1F1F;
+}
+
+.revert:hover {
+	background-color: #C00;
+}
+
+.revert:active {
+	background-color: #610000;
+}
+
+.pageLeft {
+	width:60%;
+	height:100%;
+	left:0;
+	top:0;
+	display:inline-block;
+	position: absolute;
+	border-right: 3px solid #AAA;
+	box-sizing: border-box;
+}
+
+.pageRight {
+	right:0;
+	top:0;
+	width:40%;
+	height:100%;
+	display:inline-block;
+	position: absolute;
+	overflow: scroll;
 }

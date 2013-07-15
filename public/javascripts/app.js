@@ -1,6 +1,6 @@
 $(document).ready(function(){
 	var ref = {};
-	ref.cm = CodeMirror(document.body, {
+	ref.cm = CodeMirror($('.pageLeft')[0], {
 	  value: document.getElementById('content').innerHTML,
 	  mode:  "javascript",
 	  theme: "monokai",
@@ -8,11 +8,28 @@ $(document).ready(function(){
 	});
 
 	var revert = $('.revert'),
-	save = $('.save');
+	save = $('.save'),
+	url = $('#url-src').val();
+	
+	var refreshCodeView = function() {
+		$.post('/api/test', {js:ref.cm.getValue(), url: url})
+		.done(function(resp){
+			try{
+				var json = JSON.stringify(resp);
+				$('#src').removeClass('')
+			}
+			catch(e) {
+				json = resp;
+			}
+			$('#src').html('<pre></pre>').find('pre').text(json);
+		});
+	}
+
+	refreshCodeView();
 
 	revert.click(function(){
 		$('.CodeMirror').remove();
-		ref.cm = CodeMirror(document.body, {
+		ref.cm = CodeMirror($('.pageLeft')[0], {
 		  value: document.getElementById('content').innerHTML,
 		  mode:  "javascript",
 		  theme: "monokai",

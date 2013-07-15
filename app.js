@@ -27,11 +27,14 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-app.get('/', routes.index);
+app.get('/admin', routes.admin);
 app.get('/admin/:organisation', routes.organisation);
 app.get('/admin/:organisation/:key', routes.edit);
+app.post('/api/test', routes.test);
 app.get('/api/:organisation/:key', routes.serve);
 app.post('/api/:organisation/:key', routes.save);
+app.post('/add/organisation', routes.addOrganisation);
+app.post('/add/scrape/to/:organisation', routes.addScrape);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
