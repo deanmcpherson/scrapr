@@ -1,0 +1,7 @@
+extends layout
+
+block content
+  h1 Scrapr
+  each org in organisations
+    a.org(href='/'+org.name)= org.name
+    br

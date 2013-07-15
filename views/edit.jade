@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  .topBar
+    h1 Edit #{content.name}
+    a(href="/"+org) back to #{org}
+  #content.hidden= content.content
+  .bottomBar
+    .revert Revert
+    .save Save
+  input#url.hidden(value=url)
