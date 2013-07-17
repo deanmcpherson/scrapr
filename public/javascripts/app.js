@@ -12,16 +12,10 @@ $(document).ready(function(){
 	url = $('#url-src').val();
 	
 	var refreshCodeView = function() {
-		$.post('/api/test', {js:ref.cm.getValue(), url: url})
+		$.ajax({url:'/api/test',type:'post', data:{js:ref.cm.getValue(), url: url}, dataType:'text'})
 		.done(function(resp){
-			try{
-				var json = JSON.stringify(resp);
-				$('#src').removeClass('')
-			}
-			catch(e) {
-				json = resp;
-			}
-			$('#src').html('<pre></pre>').find('pre').text(json);
+			$('#src').text(resp);
+			Prism.highlightAll();
 		});
 	}
 

@@ -85,7 +85,7 @@ a {
 }
 
 .pageLeft {
-	width:60%;
+	width:50%;
 	height:100%;
 	left:0;
 	top:0;
@@ -98,9 +98,16 @@ a {
 .pageRight {
 	right:0;
 	top:0;
-	width:40%;
+	width:50%;
 	height:100%;
 	display:inline-block;
 	position: absolute;
-	overflow: scroll;
+	overflow: auto;
+	padding:0;
+}
+
+.pageRight pre {
+	height:100%;
+	margin:0;
+	box-sizing: border-box;
 }
