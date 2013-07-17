@@ -1,6 +1,7 @@
-extends layout
+extends editLayout
 
 block content
+  #drag
   .pageLeft
     .topBar
       h1 Edit #{content.name}
@@ -12,5 +13,8 @@ block content
     input#url.hidden(value=url)
     input#url-src.hidden(value=content.url)
   .pageRight
+    #change-src.topBar
+      a(data-style="language-markup") HTML
+      a(data-style="language-javascript") JS
     pre
       code#src.language-markup

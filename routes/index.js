@@ -12,6 +12,7 @@ var loadOrganisations = function() {
 	fs.readFile('private/organisations.json', function(error, data){
 		if (!error) {
 			organisations = JSON.parse(data);
+			checkCache();
 		}
 	});
 }
@@ -26,35 +27,52 @@ var saveOrganisations = function () {
 	});
 }
 
-var updateContent = function() {
-    request('http://www.hornsby.nsw.gov.au/council/about-council/contact-us', function(error, resCode, body){
-    $ = cheerio.load(body);
-   
-    var $content = $('#content-main');
-    $content.find('fieldset, input, #form-messages, h3').remove();
-     var formContents = $content.find('form').html();
-    $content.find('form').remove();
-    $content.append(formContents);
-    var html = $content.html();
+var checkCache = function() {
+	console.log('checking cache..');
+	var updating = 0;
+    organisations.forEach(function(organisation){
+    	
+    	if (organisation.scrapes && organisation.scrapes.length > 0) {
+    		organisation.scrapes.forEach(function(scrape){
+ 	
+    			if (!scrape.lastUpdated) {
+    				scrape.lastUpdated = 0;
+    			}
 
-    if (!cached.contactUs) {
-        cached.contactUs = {};
-    };
+    			if (!scrape.updateInterval) {
+    				scrape.updateInterval = 1000 * 60 * 60 * 24;
+    			}
 
-    if (cached.contactUs.content == html) {
-      console.log('No update.');
-    }
-    else
-    {
-      cached.contactUs.content = html;
-      cached.contactUs.lastUpdated = (new Date()).getTime();
-      console.log('Updated');
-    }
-  });
+    			if ((new Date()).getTime() - scrape.lastUpdated > scrape.updateInterval) {
+    				//Lets update!			
+    				updating++;
+
+    				request(scrape.url, function(error, resCode, body){
+    					console.log('Updating ' + scrape.name, scrape.lastUpdated);
+					   if (!error) {
+					    $ = cheerio.load(body);
+					   	try{ result = new Function(scrape.content)();
+					   		scrape.latest = result;
+					   		scrape.lastUpdated = (new Date()).getTime();
+					   	 }
+					   	catch(e) {
+					   		console.log('cache scrape error', e);
+					   	}
+					  }
+					  updating --;
+
+					  if (updating == 0) {
+					  	saveOrganisations();
+					  }
+					});
+    			}
+    		}); 
+    	}
+    });
 } 
-updateContent();
+checkCache();
 
-setInterval(updateContent, 60*1000*5);
+setInterval(checkCache, 60*1000);
 
 exports.admin = function(req, res){
 	console.log(req.params);
@@ -178,22 +196,40 @@ exports.save = function(req, res) {
 
 	var scrape = organisations[oIndex].scrapes[sIndex];
 	scrape.content = req.body.content;
+	//Schedule recache
+	scrape.lastUpdated = 0;
+	checkCache();
 	saveOrganisations();
 	res.send({status:'ok'});
 }
 
 exports.serve = function(req, res){  
-    if (cached.contactUs){
-     res.send(cached.contactUs);
-    }
-    else
-    {
-      res.send({error:1, message:'No data in cache.'});
-    }
+    var x, y, organisation, scrape, org = req.params.organisation, key = req.params.key;
+
+   	for (x in organisations) {
+   		if (organisations[x]['name'] === org){
+   			organisation = organisations[x];
+   			for (y in organisation['scrapes']) {
+   				scrape = organisation['scrapes'][y];
+   				if (scrape.name === key) {
+   					if (scrape.latest) {
+   						res.send(scrape.latest);
+   						return;
+   					}
+   					else
+   					{
+   						res.send({error:1, message:'No cached version found.'});
+   					}
+   				}
+   			}
+   			res.send({error:1, message:'No scrape found in the specified organisation by that name.'});
+   		}
+   	}
+   	res.send({error:1, message: 'Organisation not found.'});
 }
 
 exports.test = function (req, res) {
-	try {
+	try {	
 	var url = req.body.url,
 		js = req.body.js;
 		
@@ -204,8 +240,7 @@ exports.test = function (req, res) {
 	   	catch(e) {
 	   		res.send({error:1, message:e});
 	   		return;
-	   	}
-	   	console.log(result);
+	   	}	
 	    res.send(result);
 	  }
 	  else

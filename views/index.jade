@@ -2,9 +2,10 @@ extends layout
 
 block content
   h1 Scrapr
-  each org in organisations
-    a.nav(href='/admin/'+org.name)= org.name
-    br
+  ul
+    each org in organisations
+      li
+        a.nav(href='/admin/'+org.name)= org.name
   form(method="post", action="/add/organisation")
     input(type="textbox", name="organisation", placeholder="Add a new organisation")
     button(type="submit") Submit

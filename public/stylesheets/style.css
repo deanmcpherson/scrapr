@@ -19,6 +19,34 @@ a {
 	height: 100%;
 }
 
+.pageRight, .pageLeft {
+	  -webkit-transform: translate3d(0,0,0);
+  -moz-transform: translate3d(0,0,0);
+  -ms-transform: translate3d(0,0,0);
+  -o-transform: translate3d(0,0,0);
+  transform: translate3d(0,0,0);
+}
+
+#change-src a {
+	display: block;
+	cursor:pointer;
+	background: white;
+	border-bottom: 1px solid #666;
+}
+
+#drag {
+width: 10px;
+margin-left: -5px;
+position: absolute;
+height: 100%;
+background: transparent;
+z-index: 100;
+top: 0;
+padding: 0;
+left: 60%;
+cursor: col-resize;
+}
+
 .topBar {
 	color: #FFF;
 	position: absolute;
@@ -85,7 +113,7 @@ a {
 }
 
 .pageLeft {
-	width:50%;
+	width:60%;
 	height:100%;
 	left:0;
 	top:0;
@@ -98,7 +126,7 @@ a {
 .pageRight {
 	right:0;
 	top:0;
-	width:50%;
+	width:40%;
 	height:100%;
 	display:inline-block;
 	position: absolute;
